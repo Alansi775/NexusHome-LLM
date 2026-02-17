@@ -14,10 +14,10 @@
 #include <FirebaseClient.h>
 
 // --- Configuration ---
-#define WIFI_SSID     "Galaxy A24 D5BA"
-#define WIFI_PASSWORD "12345678safa"
-#define DATABASE_URL  "smarthome-6e1fa-default-rtdb.europe-west1.firebasedatabase.app"
-#define API_KEY       "AIzaSyCx3PDoX4KB3rcEn8Dj94fiOguzHKRoai0"
+#define WIFI_SSID     ""
+#define WIFI_PASSWORD ""
+#define DATABASE_URL  ""
+#define API_KEY       ""
 
 // --- Hardware ---
 #define LED_PIN 2
