@@ -1,0 +1,13 @@
+# Firebase local config and environment files
+Frontend/firebase-config.js
+*.env
+
+# Node / build artifacts (if added later)
+node_modules/
+dist/
+
+# OS files
+.DS_Store
+
+# VS Code
+.vscode/

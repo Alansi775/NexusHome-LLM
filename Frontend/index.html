@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>البيت الذكي</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@200;300;400;500;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Tajawal', system-ui, sans-serif;
+      background: #000;
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .scene {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+      position: relative;
+    }
+
+    .scene::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 30%, rgba(255,255,255,0.02) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    /* ─── Floating brand ─── */
+    .brand {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      font-size: 0.75rem;
+      font-weight: 400;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.15em;
+      z-index: 10;
+    }
+
+    /* ─── Connection indicator ─── */
+    .conn {
+      position: fixed;
+      top: 2rem;
+      left: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 10;
+    }
+    .conn::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.7);
+      box-shadow: 0 0 10px rgba(255,255,255,0.25);
+      animation: connPulse 3s ease-in-out infinite;
+    }
+    .conn span {
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.5);
+      font-weight: 400;
+      letter-spacing: 0.1em;
+    }
+    @keyframes connPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    /* ─── Orb ─── */
+    .orb-container {
+      position: relative;
+      margin-bottom: 3rem;
+      flex-shrink: 0;
+    }
+
+    .orb-ring {
+      position: absolute;
+      inset: -16px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.03);
+      transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+    }
+
+    .orb {
+      width: 200px; height: 200px;
+      border-radius: 50%;
+      position: relative;
+      overflow: hidden;
+      background: rgba(255,255,255,0.015);
+      border: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fluid {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(30px);
+      transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fluid-1 {
+      width: 110px; height: 110px;
+      background: rgba(255,255,255,0.05);
+      top: 10%; left: 0%;
+      animation: drift1 9s ease-in-out infinite;
+    }
+    .fluid-2 {
+      width: 90px; height: 90px;
+      background: rgba(255,255,255,0.035);
+      bottom: 0%; right: 0%;
+      animation: drift2 12s ease-in-out infinite;
+    }
+    .fluid-3 {
+      width: 70px; height: 70px;
+      background: rgba(255,255,255,0.025);
+      top: 35%; left: 35%;
+      animation: drift3 15s ease-in-out infinite;
+    }
+
+    @keyframes drift1 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(40px, -20px) scale(1.15); }
+      66% { transform: translate(-10px, 40px) scale(0.9); }
+    }
+    @keyframes drift2 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(-35px, 15px) scale(1.1); }
+      66% { transform: translate(20px, -35px) scale(0.85); }
+    }
+    @keyframes drift3 {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(30px, -40px) scale(1.3); }
+    }
+
+    /* ON state */
+    .orb.on {
+      border-color: rgba(255,225,190,0.1);
+      box-shadow:
+        0 0 60px rgba(255,210,160,0.06),
+        0 0 160px rgba(255,190,130,0.03);
+    }
+    .orb.on ~ .orb-ring {
+      border-color: rgba(255,215,175,0.06);
+      inset: -20px;
+    }
+    .orb.on .fluid-1 {
+      background: rgba(255,215,175,0.2);
+      filter: blur(28px);
+    }
+    .orb.on .fluid-2 {
+      background: rgba(255,195,145,0.16);
+      filter: blur(32px);
+    }
+    .orb.on .fluid-3 {
+      background: rgba(255,230,200,0.12);
+      filter: blur(26px);
+    }
+
+    /* ─── Status Text ─── */
+    .status {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .status-title {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: rgba(255,255,255,0.9);
+      margin-bottom: 0.4rem;
+      transition: all 0.6s ease;
+      letter-spacing: -0.01em;
+    }
+
+    .status-title.on {
+      color: rgba(255,225,195,0.95);
+    }
+
+    .status-sub {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.45);
+      font-weight: 300;
+    }
+
+    /* ─── Buttons ─── */
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 4rem;
+    }
+
+    .btn {
+      padding: 0.75rem 2.4rem;
+      border-radius: 100px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      font-family: 'Tajawal', sans-serif;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      letter-spacing: 0.01em;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: #fff;
+      color: #000;
+      border: 1px solid #fff;
+    }
+    .btn-primary:hover {
+      background: rgba(255,255,255,0.85);
+      border-color: rgba(255,255,255,0.85);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: rgba(255,255,255,0.6);
+      border: 1px solid rgba(255,255,255,0.18);
+    }
+    .btn-ghost:hover {
+      color: rgba(255,255,255,0.9);
+      border-color: rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.03);
+    }
+
+    .btn-arrow {
+      font-size: 1.1rem;
+      line-height: 1;
+      transition: transform 0.25s ease;
+    }
+    .btn:hover .btn-arrow { transform: translateX(-3px); }
+
+    /* ─── Voice ─── */
+    .voice-section { text-align: center; }
+
+    .voice-btn {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.25);
+      padding: 0.6rem 1.5rem;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 300;
+      font-family: 'Tajawal', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .voice-btn svg { width: 14px; height: 14px; }
+    .voice-btn:hover {
+      border-color: rgba(255,255,255,0.15);
+      color: rgba(255,255,255,0.45);
+    }
+    .voice-btn:active { transform: scale(0.97); }
+
+    .voice-btn.mic-active {
+      border-color: rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.7);
+      animation: micGP 2s ease-in-out infinite;
+    }
+    @keyframes micGP {
+      0%, 100% { box-shadow: none; }
+      50% { box-shadow: 0 0 30px rgba(255,255,255,0.03); }
+    }
+
+    .voice-wave {
+      display: inline-flex;
+      align-items: center;
+      gap: 2px;
+      height: 14px;
+    }
+    .voice-wave span {
+      display: block;
+      width: 2px; height: 5px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.35);
+      animation: wave 1s ease-in-out infinite;
+    }
+    .voice-wave span:nth-child(2) { animation-delay: 0.12s; height: 10px; }
+    .voice-wave span:nth-child(3) { animation-delay: 0.24s; height: 7px; }
+    .voice-wave span:nth-child(4) { animation-delay: 0.36s; height: 12px; }
+    .voice-wave span:nth-child(5) { animation-delay: 0.48s; }
+    @keyframes wave {
+      0%, 100% { transform: scaleY(0.5); }
+      50% { transform: scaleY(1.5); }
+    }
+
+    .voice-hint {
+      margin-top: 0.75rem;
+      font-size: 0.6rem;
+      color: rgba(255,255,255,0.15);
+      font-weight: 300;
+      letter-spacing: 0.03em;
+    }
+
+    /* ─── Language Toggle ─── */
+    .lang-toggle {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 10;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.4);
+      padding: 0.45rem 1rem;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      font-weight: 400;
+      font-family: 'Tajawal', sans-serif;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 0.05em;
+    }
+    .lang-toggle:hover {
+      border-color: rgba(255,255,255,0.25);
+      color: rgba(255,255,255,0.7);
+    }
+    .lang-toggle .lang-active {
+      color: rgba(255,255,255,0.8);
+      font-weight: 500;
+    }
+    .lang-toggle .lang-sep {
+      color: rgba(255,255,255,0.15);
+    }
+
+    /* ─── Toast ─── */
+    .toast-container {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      pointer-events: none;
+    }
+    .toast {
+      display: none;
+      padding: 0.65rem 1.5rem;
+      border-radius: 100px;
+      background: rgba(255,255,255,0.07);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid rgba(255,255,255,0.05);
+      pointer-events: auto;
+      white-space: nowrap;
+    }
+    .toast.visible {
+      display: block;
+      animation: fadeUp 0.4s ease-out;
+    }
+    .toast-text {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.6);
+      font-weight: 300;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hidden { display: none !important; }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .scene { padding: 2rem 1.5rem; }
+      .status-title { font-size: 1.9rem; }
+      .orb { width: 160px; height: 160px; }
+      .orb-ring { inset: -14px; }
+      .actions { width: 100%; max-width: 320px; }
+      .btn { flex: 1; justify-content: center; padding: 0.7rem 1.5rem; }
+    }
+
+    @media (max-width: 480px) {
+      .scene { padding: 2rem 1rem; }
+      .brand { top: 1.5rem; right: 1.5rem; font-size: 0.65rem; }
+      .conn { top: 1.5rem; left: 1.5rem; }
+      .status-title { font-size: 1.6rem; }
+      .status-sub { font-size: 0.8rem; }
+      .orb { width: 140px; height: 140px; }
+      .orb-ring { inset: -12px; }
+      .fluid { filter: blur(22px) !important; }
+      .btn { font-size: 0.85rem; padding: 0.65rem 1rem; }
+      .voice-btn { font-size: 0.75rem; padding: 0.55rem 1.2rem; }
+    }
+
+    ::-webkit-scrollbar { width: 0; }
+  </style>
+</head>
+
+<body>
+
+  <div class="brand">البيت الذكي</div>
+  <div class="conn"><span>متصل</span></div>
+  <button id="langBtn" onclick="toggleLang()" class="lang-toggle">
+    <span id="langAr" class="lang-active">عربي</span>
+    <span class="lang-sep">/</span>
+    <span id="langEn">EN</span>
+  </button>
+
+  <div class="scene">
+
+    <!-- Orb -->
+    <div class="orb-container">
+      <div id="lightOrb" class="orb">
+        <div class="fluid fluid-1"></div>
+        <div class="fluid fluid-2"></div>
+        <div class="fluid fluid-3"></div>
+      </div>
+      <div class="orb-ring"></div>
+    </div>
+
+    <!-- Status -->
+    <div class="status">
+      <h1 id="statusLabel" class="status-title">النور مطفأ</h1>
+      <p id="statusSub" class="status-sub">الإضاءة غير فعّالة حالياً</p>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button id="btnOn" onclick="setLED(1)" class="btn btn-primary">
+        تشغيل 
+      </button>
+      <button id="btnOff" onclick="setLED(0)" class="btn btn-ghost">
+        إطفاء 
+      </button>
+    </div>
+
+    <!-- Voice -->
+    <div class="voice-section">
+      <button id="btnMic" onclick="startVoice()" class="voice-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+        </svg>
+        <span id="micLabel">الأمر الصوتي</span>
+        <div id="voiceWave" class="voice-wave hidden">
+          <span></span><span></span><span></span><span></span><span></span>
+        </div>
+      </button>
+      <p class="voice-hint">قل: "شغّل النور" أو "طفّي النور"</p>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast-container">
+    <div id="toast" class="toast">
+      <span id="toastText" class="toast-text"></span>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
+  <script>
+    let currentLang = 'ar';
+
+    const i18n = {
+      ar: {
+        title: 'البيت الذكي',
+        connected: 'متصل',
+        lightOff: 'النور مطفأ',
+        lightOn: 'النور مشغّل',
+        subOff: 'الإضاءة غير فعّالة حالياً',
+        subOn: 'الإضاءة فعّالة حالياً',
+        turnOn: 'تشغيل',
+        turnOff: 'إطفاء',
+        voiceBtn: 'الأمر الصوتي',
+        voiceListening: 'أتكلم...',
+        voiceHint: 'قل: "شغّل النور" أو "طفّي النور"',
+        toastOn: 'تم تشغيل النور',
+        toastOff: 'تم إطفاء النور',
+        toastError: 'حدث خطأ، حاول مرة أخرى',
+        alreadyOff: 'النور مطفأ بالفعل',
+        alreadyOn: 'النور شغّال بالفعل',
+        micDenied: 'يرجى السماح بالوصول إلى الميكروفون',
+        noSupport: 'المتصفح لا يدعم التعرف الصوتي'
+      },
+      en: {
+        title: 'Smart Home',
+        connected: 'Online',
+        lightOff: 'Light is Off',
+        lightOn: 'Light is On',
+        subOff: 'Lighting is currently inactive',
+        subOn: 'Lighting is currently active',
+        turnOn: 'Turn On',
+        turnOff: 'Turn Off',
+        voiceBtn: 'Voice Command',
+        voiceListening: 'Listening...',
+        voiceHint: 'Say: "Turn on the light" or "Turn off the light"',
+        toastOn: 'Light turned on',
+        toastOff: 'Light turned off',
+        toastError: 'Error, please try again',
+        alreadyOff: 'Light is already off',
+        alreadyOn: 'Light is already on',
+        micDenied: 'Please allow microphone access',
+        noSupport: 'Browser does not support voice recognition'
+      }
+    };
+
+    function t(key) { return i18n[currentLang][key]; }
+
+    function toggleLang() {
+      currentLang = currentLang === 'ar' ? 'en' : 'ar';
+      const isAr = currentLang === 'ar';
+
+      document.documentElement.lang = currentLang;
+      document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+
+      document.querySelector('.brand').textContent = t('title');
+      document.querySelector('.conn span').textContent = t('connected');
+      document.getElementById('langAr').classList.toggle('lang-active', isAr);
+      document.getElementById('langEn').classList.toggle('lang-active', !isAr);
+
+      document.getElementById('btnOn').innerHTML = t('turnOn')
+      document.getElementById('btnOff').innerHTML = t('turnOff');
+
+      document.querySelector('.voice-hint').textContent = t('voiceHint');
+      if (!isListening) micLabel.textContent = t('voiceBtn');
+
+      updateUI(currentLedState);
+
+      // Restart recognition with new language
+      if (isListening && recognition) {
+        shouldKeepListening = false;
+        recognition.stop();
+        recognition = null;
+        setTimeout(() => {
+          recognition = initSpeechRecognition();
+          if (recognition) { shouldKeepListening = true; try { recognition.start(); } catch(e) {} }
+        }, 300);
+      } else {
+        recognition = null;
+      }
+    }
+
+    // Prefer an external, non-committed config file `Frontend/firebase-config.js` that
+    // sets `window.firebaseConfig`. If not present, fall back to the inline config.
+    const inlineFirebaseConfig = {
+      apiKey: "AIzaSyCx3PDoX4KB3rcEn8Dj94fiOguzHKRoai0",
+      authDomain: "smarthome-6e1fa.firebaseapp.com",
+      databaseURL: "https://smarthome-6e1fa-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "smarthome-6e1fa",
+      storageBucket: "smarthome-6e1fa.firebasestorage.app",
+      messagingSenderId: "941764532767",
+      appId: "1:941764532767:web:9806c26c4541af13a9132a"
+    };
+
+    const firebaseConfig = window.firebaseConfig || inlineFirebaseConfig;
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const ledRef = db.ref("devices/LED");
+
+    const lightOrb    = document.getElementById("lightOrb");
+    const statusLabel = document.getElementById("statusLabel");
+    const statusSub   = document.getElementById("statusSub");
+    const toast       = document.getElementById("toast");
+    const toastText   = document.getElementById("toastText");
+    const btnMic      = document.getElementById("btnMic");
+    const micLabel    = document.getElementById("micLabel");
+    const voiceWave   = document.getElementById("voiceWave");
+
+    let currentLedState = 0;
+
+    ledRef.on("value", (snapshot) => {
+      const val = snapshot.val();
+      currentLedState = parseInt(val) || 0;
+      updateUI(currentLedState);
+    });
+
+    function updateUI(state) {
+      if (state === 1) {
+        lightOrb.classList.add("on");
+        statusLabel.textContent = t('lightOn');
+        statusLabel.classList.add("on");
+        statusSub.textContent = t('subOn');
+      } else {
+        lightOrb.classList.remove("on");
+        statusLabel.textContent = t('lightOff');
+        statusLabel.classList.remove("on");
+        statusSub.textContent = t('subOff');
+      }
+    }
+
+    function setLED(value) {
+      ledRef.set(value)
+        .then(() => {
+          showMessage(value === 1 ? t('toastOn') : t('toastOff'));
+        })
+        .catch(() => {
+          showMessage(t('toastError'));
+        });
+    }
+
+    function showMessage(text) {
+      toastText.textContent = text;
+      toast.classList.remove("visible");
+      void toast.offsetWidth;
+      toast.classList.add("visible");
+      clearTimeout(window._msgTimeout);
+      window._msgTimeout = setTimeout(() => {
+        toast.classList.remove("visible");
+      }, 3000);
+    }
+
+    /* ─── Voice Recognition ─── */
+    let isListening = false;
+    let recognition = null;
+    let shouldKeepListening = false;
+
+    function initSpeechRecognition() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { showMessage(t('noSupport')); return null; }
+
+      const rec = new SR();
+      rec.lang = currentLang === 'ar' ? 'ar' : 'en-US';
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.maxAlternatives = 5;
+
+      rec.onstart = () => {
+        isListening = true;
+        btnMic.classList.add("mic-active");
+        micLabel.textContent = t('voiceListening');
+        voiceWave.classList.remove("hidden");
+      };
+
+      rec.onend = () => {
+        if (shouldKeepListening) { try { rec.start(); } catch(e) {} return; }
+        isListening = false;
+        btnMic.classList.remove("mic-active");
+        micLabel.textContent = t('voiceBtn');
+        voiceWave.classList.add("hidden");
+      };
+
+      rec.onerror = (event) => {
+        if (event.error === "not-allowed") {
+          shouldKeepListening = false;
+          isListening = false;
+          btnMic.classList.remove("mic-active");
+          micLabel.textContent = t('voiceBtn');
+          voiceWave.classList.add("hidden");
+          showMessage(t('micDenied'));
+        }
+      };
+
+      rec.onresult = (event) => {
+        for (let r = 0; r < event.results.length; r++) {
+          if (!event.results[r].isFinal) continue;
+          let matched = false;
+          for (let a = 0; a < event.results[r].length; a++) {
+            const transcript = event.results[r][a].transcript.trim();
+            if (processVoiceCommand(transcript)) { matched = true; break; }
+          }
+          if (!matched) {
+            const heard = event.results[r][0].transcript.trim();
+            if (heard.length > 1) showMessage(heard);
+          }
+        }
+      };
+
+      return rec;
+    }
+
+    function processVoiceCommand(text) {
+      if (currentLang === 'en') return processEnglishCommand(text);
+
+      const n = text.replace(/[\u064B\u064C\u064D\u064E\u064F\u0650\u0651\u0652]/g,"").replace(/\u0629/g,"\u0647").replace(/\u0623|\u0625|\u0622/g,"\u0627").replace(/\u0649/g,"\u064A").trim();
+
+      const offWords = ["\u0637\u0641\u064A","\u0627\u0637\u0641\u064A","\u0627\u0637\u0641\u0626","\u0637\u0641\u0626","\u0623\u0637\u0641\u0626","\u0627\u0637\u0641\u0623","\u0627\u063A\u0644\u0642","\u063A\u0644\u0642","\u0633\u0643\u0631","\u0627\u0633\u0643\u0631","\u0627\u0642\u0641\u0644","\u0642\u0641\u0644","\u0643\u0641\u064A","\u0627\u0643\u0641\u064A","\u0648\u0642\u0641","\u0627\u0648\u0642\u0641","\u0623\u0648\u0642\u0641"];
+      const onWords = ["\u0648\u0644\u0639","\u0634\u063A\u0644","\u0627\u0641\u062A\u062D","\u0641\u062A\u062D","\u0627\u0634\u0639\u0644","\u0634\u0639\u0644","\u0646\u0648\u0631","\u062D\u0637","\u0627\u0634\u062A\u063A\u0644","\u0634\u063A\u0644\u0647","\u0648\u0644\u0639\u0647","\u0646\u0648\u0631\u0647","\u0641\u0639\u0644","\u0627\u0639\u0637\u064A","\u0639\u0637\u0646\u064A"];
+      const lightWords = ["\u0646\u0648\u0631","\u0627\u0644\u0646\u0648\u0631","\u0636\u0648\u0621","\u0627\u0644\u0636\u0648\u0621","\u0644\u0645\u0628\u0647","\u0627\u0644\u0644\u0645\u0628\u0647","\u0636\u064A","\u0627\u0644\u0636\u064A","\u0644\u0627\u064A\u062A","\u0644\u064A\u062F"];
+
+      for (const w of offWords) {
+        if (n.includes(w)) {
+          if (currentLedState === 0) showMessage(t('alreadyOff'));
+          else setLED(0);
+          return true;
+        }
+      }
+      for (const w of onWords) {
+        if (n.includes(w)) {
+          if (currentLedState === 1) showMessage(t('alreadyOn'));
+          else setLED(1);
+          return true;
+        }
+      }
+      for (const w of lightWords) {
+        if (n.includes(w)) {
+          if (currentLedState === 1) setLED(0); else setLED(1);
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function processEnglishCommand(text) {
+      const n = text.toLowerCase().trim();
+      const offPatterns = ['turn off', 'switch off', 'shut off', 'off', 'close', 'kill', 'disable', 'shut down', 'lights out'];
+      const onPatterns = ['turn on', 'switch on', 'open', 'on', 'enable', 'lights on', 'light on', 'start'];
+
+      for (const p of offPatterns) {
+        if (n.includes(p)) {
+          if (currentLedState === 0) showMessage(t('alreadyOff'));
+          else setLED(0);
+          return true;
+        }
+      }
+      for (const p of onPatterns) {
+        if (n.includes(p)) {
+          if (currentLedState === 1) showMessage(t('alreadyOn'));
+          else setLED(1);
+          return true;
+        }
+      }
+      if (n.includes('light') || n.includes('lamp') || n.includes('bulb')) {
+        if (currentLedState === 1) setLED(0); else setLED(1);
+        return true;
+      }
+      return false;
+    }
+
+    function startVoice() {
+      if (isListening) {
+        shouldKeepListening = false;
+        if (recognition) recognition.stop();
+        isListening = false;
+        btnMic.classList.remove("mic-active");
+        micLabel.textContent = t('voiceBtn');
+        voiceWave.classList.add("hidden");
+        return;
+      }
+      if (!recognition) recognition = initSpeechRecognition();
+      if (recognition) { shouldKeepListening = true; try { recognition.start(); } catch(e) {} }
+    }
+
+    function startVoiceWithLabel() {
+      if (isListening) {
+        micLabel.textContent = t('voiceBtn');
+      }
+    }
+  </script>
+
+</body>
+</html>
